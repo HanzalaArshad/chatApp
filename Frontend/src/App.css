@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+
+.App{
+  min-height: 100vh;
+  display: flex;
+  background-image: url("../src/assets/background2.png");
+  background-size: cover ;
+
+}
+
+.required-label::after {
+  content: " *";
+  color: red;
+  font-size: 16px;
+}
+
+
+
+
+.user-list-item:hover {
+  background-color: #28a745; /* Green color */
+  transition: background-color 0.3s ease-in-out; /* Smooth transition */
+}
+
+
+.messages{
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  scrollbar-width: none;
+}

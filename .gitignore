@@ -1,0 +1,41 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Build output
+dist/
+out/
+.vite/
+.next/
+.cache/
+*.log
+
+# Editor & OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Misc
+coverage/
+public/temp/
+
+# Backend specific ignores
+*.log
+logs/
+debug.log
+server.log
+database.sqlite
+dump.rdb
