@@ -21,6 +21,7 @@ const ChatPage = () => {
      justifyContent="space-between"
      w='100%'
      h="91.5$vh"
+     gap={10}
      p='10px'
 
     >

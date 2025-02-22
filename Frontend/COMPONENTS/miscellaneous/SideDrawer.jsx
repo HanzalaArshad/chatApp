@@ -104,6 +104,7 @@ const SideDrawer = () => {
         justifyContent="space-between"
         alignItems="center"
         bg="black"
+        
         p="5px 10px"
         borderWidth="1px"
         position="relative"
