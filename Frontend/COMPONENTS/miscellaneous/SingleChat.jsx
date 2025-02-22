@@ -78,9 +78,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         setMessages((prevMessages) => [...prevMessages, newMessageRecieved]);
       }
     };
-
-    socket.on("message recieved", messageListener);
-    return () => socket.off("message recieved", messageListener);
+  
+    socket.on("message received", messageListener); // ✅ Correct spelling
+    return () => socket.off("message received", messageListener);
+  
   }, [selectedChatCompare]);
 
   return (
