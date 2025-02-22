@@ -36,7 +36,7 @@ const GroupChatModal = ({ children }) => {
       const config = {
         headers: { Authorization: `Bearer ${user.token}` },
       };
-      const { data } = await axios.get(`http://localhost:5000/api/user?search=${query}`, config);
+      const { data } = await axios.get(`https://chatapp-production-31d4.up.railway.app/api/user?search=${query}`, config);
   
       console.log("Search Query:", query);
       console.log("API Response:", data);
@@ -65,7 +65,7 @@ const GroupChatModal = ({ children }) => {
         headers: { Authorization: `Bearer ${user.token}` },
       };
       const { data } = await axios.post(
-        `http://localhost:5000/api/chat/group`,
+        `https://chatapp-production-31d4.up.railway.app/api/chat/group`,
         { name: groupChatName, users: JSON.stringify(selectedUsers.map((u) => u._id)) },
         config
       );

@@ -43,7 +43,7 @@ const Signup = () => {
         },
       };
   
-      const { data } = await axios.post("http://localhost:5000/api/user", { name, email, password, pic }, config);
+      const { data } = await axios.post("https://chatapp-production-31d4.up.railway.app/api/user", { name, email, password, pic }, config);
   
       toast.success("Sign Up Successfully Done");
       localStorage.setItem("userInfo", JSON.stringify(data));

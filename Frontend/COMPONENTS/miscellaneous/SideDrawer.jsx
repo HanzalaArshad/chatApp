@@ -62,7 +62,7 @@ const SideDrawer = () => {
       setLoading(true);
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const { data } = await axios.get(
-        `/api/user?search=${search}`,
+        `https://chatapp-production-31d4.up.railway.app/api/user?search=${search}`,
         config
       );
 
@@ -84,7 +84,7 @@ const SideDrawer = () => {
           Authorization: `Bearer ${user.token}` }
          };
 
-         const {data}=await axios.post( `/api/chat`,{userId},config)
+         const {data}=await axios.post( `https://chatapp-production-31d4.up.railway.app/api/chat`,{userId},config)
 
          if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
          setSelectedChat(data)  

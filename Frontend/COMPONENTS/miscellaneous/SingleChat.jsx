@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import ScrollAbleChat from "./ScrollAbleChat";
 import { io } from "socket.io-client";
 
-const ENDPOINT = "http://localhost:5000";
+const ENDPOINT = "https://chatapp-production-31d4.up.railway.app";
 let socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
@@ -35,7 +35,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          `http://localhost:5000/api/message/${selectedChat._id}`,
+          `https://chatapp-production-31d4.up.railway.app/api/message/${selectedChat._id}`,
           { headers: { Authorization: `Bearer ${user.token}` } }
         );
         setMessages(data);
@@ -57,7 +57,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         setNewMessage("");
 
         const { data } = await axios.post(
-          "http://localhost:5000/api/message",
+          "https://chatapp-production-31d4.up.railway.app/api/message",
           { content: messageToSend, chatId: selectedChat._id },
           { headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.token}` } }
         );
