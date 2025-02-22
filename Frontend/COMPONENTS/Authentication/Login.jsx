@@ -39,7 +39,7 @@ const Login = () => {
         }
         
 
-         const {data}=await axios.post("/api/user/login",{email,password},config);
+         const {data}=await axios.post("http://localhost:5000/api/user/login",{email,password},config);
          toast.success("login Successful");
 
          localStorage.setItem("userInfo",JSON.stringify(data))
