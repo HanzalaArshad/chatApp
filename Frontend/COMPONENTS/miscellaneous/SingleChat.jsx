@@ -9,106 +9,223 @@ import UpdateGroupChatModal from "./UpdateGroupChatModal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ScrollAbleChat from "./ScrollAbleChat";
+import whatsapp from "../../src/assets/whatsapp.jpg"
 import { io } from "socket.io-client";
+import { CgProfile } from "react-icons/cg";
 
-const ENDPOINT = "https://chatapp-production-31d4.up.railway.app";
-let socket, selectedChatCompare;
 
+
+
+ const ENDPOINT="https://chatapp-production-31d4.up.railway.app";
+ var socket,selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const { user, selectedChat, setSelectedChat } = chatState();
   const [showModal, setShowModal] = useState(false);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
-  const [socketConnected, setSocketConnected] = useState(false);
+  const [socketConnected,setSocketConnected]=useState(false)
+  const [typing,setTyping]=useState(false)
+  const [istyping,setIsTyping]=useState()
 
-  useEffect(() => {
-    socket = io(ENDPOINT);
-    socket.emit("setup", user);
-    socket.on("connected", () => setSocketConnected(true));
-  }, [user]);
 
-  useEffect(() => {
+  const fetchMessages = async () => {
     if (!selectedChat) return;
-    
-    const fetchMessages = async () => {
-      try {
-        setLoading(true);
-        const { data } = await axios.get(
-          `https://chatapp-production-31d4.up.railway.app/api/message/${selectedChat._id}`,
-          { headers: { Authorization: `Bearer ${user.token}` } }
-        );
-        setMessages(data);
-        socket.emit("join chat", selectedChat._id);
-        setLoading(false);
-      } catch (error) {
-        toast.error("Failed to Load Messages");
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+  
+      setLoading(true);
+      const { data } = await axios.get(
+        `https://chatapp-production-31d4.up.railway.app/api/message/${selectedChat._id}`,
+        config
+      );
+  
+      if (!Array.isArray(data)) {
+        console.error("API response is not an array:", data);
+        toast.error("Unexpected response format from server");
+        return;
       }
-    };
+  
+      setMessages(data);
+      console.log(data);
+      
+      setLoading(false);
+
+      socket.emit("join chat", selectedChat._id);
+
+      } catch (error) {
+      toast.error("Failed to Load the Messages");
+      console.error("Fetch Messages Error:", error);
+    }
+  };
+
     
-    fetchMessages();
-    selectedChatCompare = selectedChat;
-  }, [selectedChat, user]);
+      useEffect(()=>{
+      fetchMessages()
+      selectedChatCompare =selectedChat
+    },[selectedChat])
 
   const sendMessage = async (event) => {
     if (event.key === "Enter" && newMessage) {
+      if (!selectedChat || !user) return;
+
       try {
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+        };
+
         const messageToSend = newMessage;
         setNewMessage("");
 
         const { data } = await axios.post(
           "https://chatapp-production-31d4.up.railway.app/api/message",
           { content: messageToSend, chatId: selectedChat._id },
-          { headers: { "Content-Type": "application/json", Authorization: `Bearer ${user.token}` } }
+          config
         );
+        console.log(data);
 
-        socket.emit("send Message", data);
-        setMessages((prevMessages) => [...prevMessages, data]);
+        socket.emit("send Message",data)
+        
+        setMessages([...messages, data]);
+
       } catch (error) {
         toast.error("Failed to send the message");
       }
     }
   };
-
   useEffect(() => {
-    const messageListener = (newMessageRecieved) => {
-      if (!selectedChatCompare || selectedChatCompare._id !== newMessageRecieved.chat._id) {
-        // Give notification
-      } else {
-        setMessages((prevMessages) => [...prevMessages, newMessageRecieved]);
-      }
-    };
-  
-    socket.on("message received", messageListener); // ✅ Correct spelling
-    return () => socket.off("message received", messageListener);
-  
-  }, [selectedChatCompare]);
+    socket = io(ENDPOINT);
+    socket.emit("setup", user);
+    socket.on("connected", () => setSocketConnected(true));
+    // socket.on("typing", () => setIsTyping(true));
+    // socket.on("stop typing", () => setIsTyping(false));
 
+    // eslint-disable-next-line
+  }, []);
+
+
+  useEffect(()=>{
+    socket.on( "message recieved",(newMessageRecieved)=>{
+      if(!selectedChatCompare || selectedChatCompare._id !==newMessageRecieved.chat._id){
+        // give notification
+      } else{
+        setMessages([...messages,newMessageRecieved])
+      }
+    } )
+})
+  
   return (
     <>
       {selectedChat ? (
         <>
-          <Text fontSize={{ base: "28px", md: "30px" }} pb={3} px={2} w="100%" display="flex" justifyContent="space-between" gap={8} alignItems="center" color="white" fontWeight={700}>
-            <Button style={{ backgroundColor: "darkblue", borderColor: "darkblue" }} onClick={() => setSelectedChat("")}> <FaArrowLeftLong /> </Button>
-            {selectedChat?.isGroupChat ? selectedChat?.chatName?.toUpperCase() : getSender(user, selectedChat?.users)}
-            {selectedChat.isGroupChat && <UpdateGroupChatModal fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} fetchMessages={fetchMessages} />}
-            {!selectedChat.isGroupChat && <Button variant="primary" className="ms-2" onClick={() => setShowModal(true)}> Profile </Button>}
-          </Text>
-          {!selectedChat.isGroupChat && <UserProfileModal show={showModal} onClose={() => setShowModal(false)} user={getSenderFull(user, selectedChat.users)} />}
-          <Box display="flex" flexDirection="column" justifyContent="flex-end" p={3} background="transparent" w="100%" h="100%" borderRadius="lg" overflowY="hidden">
-            {loading ? (
-              <Container fluid className="d-flex vh-100 justify-content-center align-items-center">
-                <Spinner animation="border" role="status" size="large" />
-              </Container>
-            ) : (
-              <div className="messages"> <ScrollAbleChat messages={messages} /> </div>
+          <Text
+            fontSize={{ base: "28px", md: "30px" }}
+            pb={3}
+            px={2}
+            w="100%"
+            display="flex"
+            justifyContent="space-between"
+            gap={8}
+          
+            alignItems="center"
+            color="white"
+            fontWeight={700}
+          >
+            <Button
+              style={{background:"transparent" ,border:"none" }}
+              onClick={() => setSelectedChat("")}
+            >
+              <FaArrowLeftLong size={30}  />
+            </Button>
+    {selectedChat?.isGroupChat
+      ? selectedChat?.chatName?.toUpperCase()
+      : getSender(user, selectedChat?.users)}
+
+                
+            {selectedChat.isGroupChat && (
+              <UpdateGroupChatModal
+                fetchAgain={fetchAgain}
+                setFetchAgain={setFetchAgain}
+                fetchMessages={fetchMessages}
+              />
             )}
-            <Form.Control type="text" onKeyDown={sendMessage} placeholder="Enter the message" style={{ backgroundColor: "#e0e0e0" }} onChange={(e) => setNewMessage(e.target.value)} value={newMessage} mt="6" required />
+            {!selectedChat.isGroupChat && (
+              <Button
+              style={{border:"none"}}
+                className="ms-2 bg-transparent "
+                onClick={() => setShowModal(true)}
+              >
+                <CgProfile size={50} style={{color:"lightblue"}} />
+
+              </Button>
+            )}
+          </Text>
+
+          {!selectedChat.isGroupChat && (
+            <UserProfileModal
+              show={showModal}
+              onClose={() => setShowModal(false)}
+              user={getSenderFull(user, selectedChat.users)}
+            />
+          )}
+
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="flex-end"
+            p={3}
+            background="transparent"
+            bgRepeat="no-repeat"
+            w="100%"
+            h="100%"
+            borderRadius="lg"
+            overflowY="hidden"
+          >
+            {loading ? (
+  <Container fluid className="d-flex vh-100 justify-content-center align-items-center">
+    <Spinner animation="border" role="status" size="large" />
+  </Container>
+) : (
+  <>
+    <div className="messages">
+     <ScrollAbleChat messages={messages}/>
+    </div>
+  </>
+)}
+
+
+            <Form.Control
+              type="text"
+              onKeyDown={sendMessage}
+              placeholder="Enter the message"
+              style={{ backgroundColor: "#e0e0e0" }}
+              onChange={(e) => setNewMessage(e.target.value)}
+              value={newMessage}
+              mt="6"
+              required
+            />
           </Box>
         </>
       ) : (
-        <Box display="flex" alignItems="center" justifyContent="center" h="100%">
-          <Text fontSize="3xl" className="text-white fs-1"> Click on a user to start chatting </Text>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          // backgroundImage={`url(${whatsapp})`}  // Fix: Use url() properly
+
+
+          h="100vh"
+        >
+          <Text fontSize="3xl" className="text-white fs-1">
+            Click on a user to start chatting
+          </Text>
         </Box>
       )}
     </>
