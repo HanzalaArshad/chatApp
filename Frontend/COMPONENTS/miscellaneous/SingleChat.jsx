@@ -19,7 +19,7 @@ import { CgProfile } from "react-icons/cg";
  const ENDPOINT="https://chatapp-production-31d4.up.railway.app";
  var socket,selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  const { user, selectedChat, setSelectedChat } = chatState();
+  const { user, selectedChat, setSelectedChat,notification,setNotification } = chatState();
   const [showModal, setShowModal] = useState(false);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -124,7 +124,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   useEffect(()=>{
     socket.on( "message received",(newMessageRecieved)=>{
       if(!selectedChatCompare || selectedChatCompare._id !==newMessageRecieved.chat._id){
-        // give notification
+        if(!notification.includes(newMessageRecieved)){
+          setNotification([notification,...newMessageRecieved])
+          setFetchAgain(!fetchAgain)
+        }
       } else{
         setMessages([...messages,newMessageRecieved])
       }

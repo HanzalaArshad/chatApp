@@ -34,7 +34,7 @@ import ChatLoading from "./ChatLoading";
 import UserList from "./UserList";
 
 const SideDrawer = () => {
-  const { user,setSelectedChat,chats,setChats } = chatState();
+  const { user,setSelectedChat,chats,setChats,notification,setNotification } = chatState();
   const [showProfile, setShowProfile] = useState(false); // State to control ProfileModal
   const [drawerState, setDrawerState] = useState({ open: false }); // State to control Drawer open/close
   const [search, setSearch] = useState("");
@@ -132,20 +132,28 @@ const SideDrawer = () => {
 
         {/* Notifications & Profile */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <MenuRoot>
-            <MenuTrigger as="div">
-              <Button size="lg" bg="transparent" color="white">
+        <Button size="lg" variant="transparent" style={{ color: "white" }}>
                 <IoIosNotifications />
-              </Button>
-            </MenuTrigger>
-            <MenuContent>
-              <MenuItem value="new-txt-a">New Text File</MenuItem>
-              <MenuItem value="new-file-a">New File...</MenuItem>
-              <MenuItem value="new-win-a">New Window</MenuItem>
-              <MenuItem value="open-file-a">Open File...</MenuItem>
-              <MenuItem value="export-a">Export</MenuItem>
-            </MenuContent>
-          </MenuRoot>
+                {/* Notification Badge */}
+                {notification.length > 0 && (
+                  <Box
+                    position="absolute"
+                    top="0"
+                    right="0"
+                    bg="red.500"
+                    borderRadius="full"
+                    width="18px"
+                    height="18px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    color="white"
+                    fontSize="12px"
+                  >
+                    {notification.length}
+                  </Box>
+                )}
+              </Button> 
 
           {/* User Profile */}
           <Dropdown align="end">
