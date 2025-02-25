@@ -104,11 +104,21 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
     socket.on("connected", () => setSocketConnected(true));
-    // socket.on("typing", () => setIsTyping(true));
-    // socket.on("stop typing", () => setIsTyping(false));
+    socket.on("typing", () => {
+      // console.log("Received typing event");
+      setIsTyping(true);
+    });
 
-    // eslint-disable-next-line
-  }, []);
+    socket.on("stop typing", () => {
+      // console.log("Received stop typing event");
+      setIsTyping(false);
+    });
+
+    //Cleanup on unmount
+    return () => {
+      socket.disconnect();
+    }; 
+   }, []);
 
 
   useEffect(()=>{
@@ -200,7 +210,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   </>
 )}
 
-
+          {istyping && (
+              <Text fontSize="xl" color="gray.400" ml={2}>
+                Typing ...
+              </Text>
+            )}
             <Form.Control
               type="text"
               onKeyDown={sendMessage}

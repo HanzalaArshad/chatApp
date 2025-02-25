@@ -138,8 +138,8 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain,fetchMessages }) => {
 
   return (
     <>
-      <Button variant="warning" onClick={handleShow}>
-      <IoSettingsSharp />
+      <Button className="bg-transparent" onClick={handleShow}>
+      <IoSettingsSharp size={50} />
       </Button>
 
       <Modal show={show} onHide={handleClose} centered>
