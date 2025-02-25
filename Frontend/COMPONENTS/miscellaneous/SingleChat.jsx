@@ -9,68 +9,66 @@ import UpdateGroupChatModal from "./UpdateGroupChatModal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import ScrollAbleChat from "./ScrollAbleChat";
-import whatsapp from "../../src/assets/whatsapp.jpg"; // Ensure this path is correct
+import whatsapp from "../../src/assets/whatsapp.jpg"
 import { io } from "socket.io-client";
 import { CgProfile } from "react-icons/cg";
-import Lottie from "react-lottie";
-import animationdata from "../../src/animations/typing.json"
-const ENDPOINT = "https://chatapp-production-31d4.up.railway.app"; // Adjust if your server runs elsewhere
-let socket, selectedChatCompare;
 
+
+
+
+ const ENDPOINT="https://chatapp-production-31d4.up.railway.app";
+ var socket,selectedChatCompare;
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const { user, selectedChat, setSelectedChat,notification,setNotification } = chatState();
   const [showModal, setShowModal] = useState(false);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
-  const [socketConnected, setSocketConnected] = useState(false);
-  const [typing, setTyping] = useState(false);
-  const [istyping, setIsTyping] = useState(false);
+  const [socketConnected,setSocketConnected]=useState(false)
+  const [typing,setTyping]=useState(false)
+  const [istyping,setIsTyping]=useState()
 
-  const defaultOptions={
-    loop:true,
-    autoPlay:true,
-    animationData:animationdata,
-    renderSettings:{
-      preserveAspectRatio:"xMidYMid slice"
-    }
-  }
-  // Fetch messages for the selected chat
+
   const fetchMessages = async () => {
     if (!selectedChat) return;
-
     try {
       const config = {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
       };
-
+  
       setLoading(true);
       const { data } = await axios.get(
-        `${ENDPOINT}/api/message/${selectedChat._id}`,
+        `https://chatapp-production-31d4.up.railway.app/api/message/${selectedChat._id}`,
         config
       );
-
+  
       if (!Array.isArray(data)) {
         console.error("API response is not an array:", data);
         toast.error("Unexpected response format from server");
         return;
       }
-
+  
       setMessages(data);
-      // console.log("Fetched messages:", data);
+      console.log(data);
+      
       setLoading(false);
 
       socket.emit("join chat", selectedChat._id);
-    } catch (error) {
+
+      } catch (error) {
       toast.error("Failed to Load the Messages");
       console.error("Fetch Messages Error:", error);
-      setLoading(false);
     }
   };
 
-  // Send a new message
+    
+      useEffect(()=>{
+      fetchMessages()
+      selectedChatCompare =selectedChat
+    },[selectedChat])
+
   const sendMessage = async (event) => {
     if (event.key === "Enter" && newMessage) {
       if (!selectedChat || !user) return;
@@ -84,61 +82,48 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         };
 
         const messageToSend = newMessage;
-        setNewMessage(""); // Clear input immediately
+        setNewMessage("");
 
         const { data } = await axios.post(
-          `${ENDPOINT}/api/message`,
+          "https://chatapp-production-31d4.up.railway.app/api/message",
           { content: messageToSend, chatId: selectedChat._id },
           config
         );
+        console.log(data);
 
-        // console.log("Sent message:", data);
-        socket.emit("send Message", data);
+        socket.emit("send Message",data)
+        
         setMessages([...messages, data]);
+
       } catch (error) {
         toast.error("Failed to send the message");
-        console.error("Send Message Error:", error);
       }
     }
   };
-
-  // Socket.IO setup
   useEffect(() => {
     socket = io(ENDPOINT);
     socket.emit("setup", user);
-
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-      setSocketConnected(true);
-    });
-
+    socket.on("connected", () => setSocketConnected(true));
     socket.on("typing", () => {
-      console.log("Received typing event");
+      // console.log("Received typing event");
       setIsTyping(true);
     });
 
     socket.on("stop typing", () => {
-      console.log("Received stop typing event");
+      // console.log("Received stop typing event");
       setIsTyping(false);
     });
 
-    // Cleanup on unmount
+    //Cleanup on unmount
     return () => {
       socket.disconnect();
-    };
-  }, []);
+    }; 
+   }, []);
 
-  // Fetch messages when selectedChat changes
-  useEffect(() => {
-    if (selectedChat) {
-      fetchMessages();
-      selectedChatCompare = selectedChat;
-    }
-  }, [selectedChat]);
 
-  // Handle incoming messages
-  useEffect(() => {
-    socket.on("message recieved", (newMessageReceived) => {
+  
+   useEffect(() => {
+    socket.on("message received", (newMessageReceived) => {
       if (
         !selectedChatCompare ||
         selectedChatCompare._id !== newMessageReceived.chat._id
@@ -159,30 +144,29 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     };
   }, [messages]); // Dependency on messages ensures the latest state is used
    console.log(notification);
-   
-  // Typing handler
-  const typingHandler = (e) => {
-    setNewMessage(e.target.value);
 
-    if (!socketConnected || !selectedChat) return;
+const typingHandler = (e) => {
+  setNewMessage(e.target.value);
 
-    if (!typing) {
-      setTyping(true);
-      socket.emit("typing", selectedChat._id);
+  if (!socketConnected || !selectedChat) return;
+
+  if (!typing) {
+    setTyping(true);
+    socket.emit("typing", selectedChat._id);
+  }
+
+  let lastTypingTime = new Date().getTime();
+  setTimeout(() => {
+    let currentTime = new Date().getTime();
+    let timeDiff = currentTime - lastTypingTime;
+
+    if (timeDiff >= 3000 && typing) {
+      socket.emit("stop typing", selectedChat._id);
+      setTyping(false);
     }
-
-    let lastTypingTime = new Date().getTime();
-    setTimeout(() => {
-      let currentTime = new Date().getTime();
-      let timeDiff = currentTime - lastTypingTime;
-
-      if (timeDiff >= 3000 && typing) {
-        socket.emit("stop typing", selectedChat._id);
-        setTyping(false);
-      }
-    }, 3000);
-  };
-
+  }, 3000);
+};
+  
   return (
     <>
       {selectedChat ? (
@@ -195,20 +179,22 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             display="flex"
             justifyContent="space-between"
             gap={8}
+          
             alignItems="center"
             color="white"
             fontWeight={700}
           >
             <Button
-              style={{ background: "transparent", border: "none" }}
+              style={{background:"transparent" ,border:"none" }}
               onClick={() => setSelectedChat("")}
             >
-              <FaArrowLeftLong size={30} />
+              <FaArrowLeftLong size={30}  />
             </Button>
-            {selectedChat?.isGroupChat
-              ? selectedChat?.chatName?.toUpperCase()
-              : getSender(user, selectedChat?.users)}
+    {selectedChat?.isGroupChat
+      ? selectedChat?.chatName?.toUpperCase()
+      : getSender(user, selectedChat?.users)}
 
+                
             {selectedChat.isGroupChat && (
               <UpdateGroupChatModal
                 fetchAgain={fetchAgain}
@@ -218,11 +204,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             )}
             {!selectedChat.isGroupChat && (
               <Button
-                style={{ border: "none" }}
-                className="ms-2 bg-transparent"
+              style={{border:"none"}}
+                className="ms-2 bg-transparent "
                 onClick={() => setShowModal(true)}
               >
-                <CgProfile size={50} style={{ color: "lightblue" }} />
+                <CgProfile size={50} style={{color:"lightblue"}} />
+
               </Button>
             )}
           </Text>
@@ -241,37 +228,38 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             justifyContent="flex-end"
             p={3}
             background="transparent"
+            bgRepeat="no-repeat"
             w="100%"
             h="100%"
             borderRadius="lg"
             overflowY="hidden"
           >
             {loading ? (
-              <Container
-                fluid
-                className="d-flex vh-100 justify-content-center align-items-center"
-              >
-                <Spinner animation="border" role="status" size="large" />
-              </Container>
-            ) : (
-              <div className="messages">
-                <ScrollAbleChat messages={messages} />
-              </div>
-            )}
+  <Container fluid className="d-flex vh-100 justify-content-center align-items-center">
+    <Spinner animation="border" role="status" size="large" />
+  </Container>
+) : (
+  <>
+    <div className="messages">
+     <ScrollAbleChat messages={messages}/>
+    </div>
+  </>
+)}
 
-            {istyping && (
+          {istyping && (
               <Text fontSize="xl" color="gray.400" ml={2}>
                 Typing ...
               </Text>
             )}
-
             <Form.Control
               type="text"
               onKeyDown={sendMessage}
               placeholder="Enter the message"
-              style={{ backgroundColor: "#e0e0e0", marginTop: "6px" }}
+              style={{ backgroundColor: "#e0e0e0" }}
               onChange={typingHandler}
               value={newMessage}
+
+              mt="6"
               required
             />
           </Box>
@@ -281,8 +269,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          backgroundImage={`url(${whatsapp})`}
-          backgroundSize="cover"
+          // backgroundImage={`url(${whatsapp})`}  // Fix: Use url() properly
+
+
           h="100vh"
         >
           <Text fontSize="3xl" className="text-white fs-1">
