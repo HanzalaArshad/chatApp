@@ -132,6 +132,12 @@ const SideDrawer = () => {
 
         {/* Notifications & Profile */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <Dropdown>
+      <Dropdown.Toggle 
+        as="div" 
+        bsPrefix="custom-toggle"
+        style={{ background: 'transparent', border: 'none', padding: 0 }}
+      >
         <Button size="lg" variant="transparent" style={{ color: "white" }}>
                 <IoIosNotifications />
                 {/* Notification Badge */}
@@ -153,7 +159,33 @@ const SideDrawer = () => {
                     {notification.length}
                   </Box>
                 )}
-              </Button> 
+              </Button>  
+              
+              
+       </Dropdown.Toggle>
+
+      <Dropdown.Menu>
+        <Dropdown.Item eventKey="new-txt-a">
+          {!notification.length && "No New Message"}
+          {notification.map((data)=>{
+            return(
+              <div key={data._id} onClick={()=>{
+                setSelectedChat(data.chat)
+                setNotification(notification.filter((n)=> n !==  data))
+               } }>
+                {data.chat.isGroupChat?`New Message in ${data.chat.chatName}`:`New Message from ${getSender(user,data.chat.users)}`}
+
+              </div>
+            )
+          }
+
+          )}
+
+        </Dropdown.Item>
+        
+      </Dropdown.Menu>
+    </Dropdown>
+
 
           {/* User Profile */}
           <Dropdown align="end">
