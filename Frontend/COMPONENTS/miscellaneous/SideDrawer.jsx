@@ -32,6 +32,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import ChatLoading from "./ChatLoading";
 import UserList from "./UserList";
+import { getSender } from "@/config/ChatLogics";
 
 const SideDrawer = () => {
   const { user,setSelectedChat,chats,setChats,notification,setNotification } = chatState();
@@ -103,8 +104,7 @@ const SideDrawer = () => {
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        bg="black"
-        
+        bg="#0D1b2A"
         p="5px 10px"
         borderWidth="1px"
         position="relative"
@@ -185,7 +185,6 @@ const SideDrawer = () => {
         
       </Dropdown.Menu>
     </Dropdown>
-
 
           {/* User Profile */}
           <Dropdown align="end">
