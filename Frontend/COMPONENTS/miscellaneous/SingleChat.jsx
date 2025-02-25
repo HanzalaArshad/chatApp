@@ -130,6 +130,28 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     } )
 })
+
+const typingHandler = (e) => {
+  setNewMessage(e.target.value);
+
+  if (!socketConnected || !selectedChat) return;
+
+  if (!typing) {
+    setTyping(true);
+    socket.emit("typing", selectedChat._id);
+  }
+
+  let lastTypingTime = new Date().getTime();
+  setTimeout(() => {
+    let currentTime = new Date().getTime();
+    let timeDiff = currentTime - lastTypingTime;
+
+    if (timeDiff >= 3000 && typing) {
+      socket.emit("stop typing", selectedChat._id);
+      setTyping(false);
+    }
+  }, 3000);
+};
   
   return (
     <>
@@ -220,8 +242,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               onKeyDown={sendMessage}
               placeholder="Enter the message"
               style={{ backgroundColor: "#e0e0e0" }}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={typingHandler}
               value={newMessage}
+
               mt="6"
               required
             />
